@@ -1,4 +1,4 @@
-module liveblog-go-pusher
+module memo
 
 go 1.13
 
