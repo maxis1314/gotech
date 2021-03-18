@@ -187,8 +187,9 @@ func main() {
 	db := initialiseDatabase("./database/storage.db")
 	migrateDatabase(db)
 
+	e.Static("/public", "public")
 	e.File("/", "public/index.html")
-	e.File("/admin", "public/admin.html")
+	//e.File("/admin", "public/admin.html")
 	e.GET("/posts", getPosts(db))
 	e.POST("/posts", savePost(db))
 	e.DELETE("/posts", deletePost(db))
