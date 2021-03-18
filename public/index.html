@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <title>Memo</title>
+    <style>
+    .container {
+        max-width: 800px;
+    }
+    .logo-space {
+        text-align: center;
+        padding: 2px 0;
+        color: white;
+        background-color: lightslategray;
+        margin: 10px 0;
+    }
+    .live-posts {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .live-posts > li {
+        padding: 10px;
+        background-color: #d8d8d8;
+        margin-bottom: 10px;
+    }
+    .power {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #999;
+    }
+
+    li{
+        position:relative;
+        padding:5px 10px;
+        background:#ccc;
+        border-radius:3px;
+        margin:3px;
+    }
+    .deletebtn{
+        padding:3px;
+        line-height:8px;
+        cursor:pointer;
+        position:absolute;
+        right:1px;
+        top:2px;
+    }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="logo-space">
+                <h2>Memo</h2>
+            </div>
+
+            <form action="/posts" method="POST" id="post-stuff" v-on:submit.prevent="submitForm">
+                <div class="form-group">
+                    <textarea class="form-control" v-model="content" placeholder="Enter Post"></textarea>
+                </div>
+                <input type="submit" class="form-control btn btn-primary" name="submit" value="Add">
+            </form>
+            <br>
+
+            <form action="/posts" method="POST" id="post-stuff" v-on:submit.prevent="searchForm">
+                
+                    <input class="form-control" v-model="keywords" placeholder="Search">                    
+                
+                
+            </form>
+            <br>
+
+            <ul class="live-posts">
+                <li v-for="post in posts"><span v-text="post.content"></span> <span class="deletebtn" v-on:click="deleteFrom(post.id)">x</span></li>
+            </ul>
+
+            <div class="alert alert-success" role="alert" v-show="successfulPost">            
+                Nothing found!
+            </div>
+
+            <div class="power">
+                Powered by <a href="#">2021</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                posts: [],
+                content: "",
+                successfulPost: false,
+                keywords: "",
+            },
+            created() {
+                this.searchForm()
+            },
+            methods: {
+                submitForm() {
+                    if (this.content.length > 0 && this.content !== "") {
+                        let data = new FormData()
+                        data.append("content", this.content)
+                        axios.post("/posts", data).then(res => {
+                            this.content = ""
+                            //this.successfulPost = true
+                            //setTimeout(() => this.successfulPost = false, 2000)
+                            //this.keywords = ""
+                            this.searchForm()
+                        })
+                    }
+                },
+                deleteFrom(id) {
+                    axios.delete("/posts",  { data: { id: id } }).then(res => {
+                        this.searchForm()
+                    })
+                },
+                refreshData(){
+                    axios.get("/posts").then(res => {
+                        if (res.data.items) {
+                            if (res.data.items){
+                                this.successfulPost = false
+                                this.posts = res.data.items
+                            }else{
+                                this.posts = []
+                                this.successfulPost = true
+                            }
+                        }
+                    })
+                },
+                searchForm(){
+                    axios.get("/posts",{params:{keywords:this.keywords}}).then(res => {
+                        if (res.data.items) {
+                            this.successfulPost = false
+                            this.posts = res.data.items
+                        }else{
+                            this.posts = []
+                            this.successfulPost = true
+                        }
+                    })
+                }
+            }
+        })
+    </script>
+</body>
+</html>
